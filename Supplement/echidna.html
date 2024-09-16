@@ -1,0 +1,230 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome file</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h3 id="presentation-on-echidna-fuzzing-for-solidity">Presentation on <strong>Echidna Fuzzing for Solidity</strong></h3>
+<hr>
+<h2 id="introduction-to-fuzzing">1. <strong>Introduction to Fuzzing</strong></h2>
+<ul>
+<li><strong>Fuzzing</strong> is a testing technique that automatically generates random inputs to a program to find bugs, vulnerabilities, or unexpected behaviors.</li>
+<li>For smart contracts, fuzzing ensures the contract behaves correctly even under unusual inputs or conditions.</li>
+<li><strong>Echidna</strong> is one of the best fuzzing tools for testing Solidity smart contracts, focusing on <strong>property-based testing</strong>.</li>
+</ul>
+<hr>
+<h2 id="what-is-echidna">2. <strong>What is Echidna?</strong></h2>
+<ul>
+<li><strong>Echidna</strong> is a fuzzer for Ethereum smart contracts, written in Solidity.</li>
+<li>It helps find vulnerabilities and bugs by verifying that certain <strong>properties</strong> (conditions) hold true under different inputs.</li>
+<li>Supports <strong>differential testing</strong> by comparing the results of two different smart contract versions.</li>
+</ul>
+<h3 id="key-features">Key Features:</h3>
+<ul>
+<li><strong>Property-based testing:</strong> Echidna checks properties that you specify within your smart contract.</li>
+<li><strong>Random inputs:</strong> Generates random inputs and feeds them into the contract functions.</li>
+<li><strong>Detection of edge cases:</strong> Uncovers unexpected edge case behaviors or errors in your contract.</li>
+</ul>
+<hr>
+<h2 id="why-use-echidna-for-solidity">3. <strong>Why Use Echidna for Solidity?</strong></h2>
+<ul>
+<li><strong>Automated bug detection</strong>: Echidna automatically explores possible states and inputs, requiring minimal manual test case writing.</li>
+<li><strong>Find complex bugs</strong>: Can discover bugs that traditional unit testing might miss due to the randomness of inputs.</li>
+<li><strong>Security</strong>: Helps identify vulnerabilities in smart contracts such as reentrancy, integer overflows, etc.</li>
+</ul>
+<hr>
+<h2 id="setting-up-echidna">4. <strong>Setting up Echidna</strong></h2>
+<h3 id="step-by-step-setup">Step-by-Step Setup:</h3>
+<ol>
+<li><strong>Install Echidna</strong>:
+<ul>
+<li>Install via Docker:<pre class=" language-bash"><code class="prism  language-bash">docker pull trailofbits/echidna
+</code></pre>
+</li>
+</ul>
+</li>
+</ol>
+<p><a href="https://github.com/crytic/echidna/blob/73819e31cdd9ae908f1c3f5c901247d184201620/README.md#precompiled-binaries">https://github.com/crytic/echidna/blob/73819e31cdd9ae908f1c3f5c901247d184201620/README.md#precompiled-binaries</a></p>
+<ol start="2">
+<li><strong>Prepare your Solidity smart contract</strong>:
+<ul>
+<li>Write your contract in Solidity with specific properties you want to test.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="defining-properties-in-echidna">5. <strong>Defining Properties in Echidna</strong></h2>
+<p>Echidna relies on Solidity’s <strong>assertions</strong> or <strong>specific functions</strong> to define properties. Let’s take an example to demonstrate how to use these.</p>
+<h3 id="example-contract">Example Contract:</h3>
+<pre class=" language-solidity"><code class="prism  language-solidity">// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Token {
+    mapping(address =&gt; uint256) public balances;
+
+    constructor() {
+        balances[msg.sender] = 1000;  // Set initial balance
+    }
+
+    function transfer(address to, uint256 amount) public {
+        require(balances[msg.sender] &gt;= amount, "Insufficient balance");
+        balances[msg.sender] -= amount;
+        balances[to] += amount;
+    }
+
+    // Echidna property: No address should have a balance greater than 1000 tokens.
+    function echidna_balance_check() public view returns (bool) {
+        return balances[msg.sender] &lt;= 1000;
+    }
+}
+</code></pre>
+<h3 id="property-definition">Property Definition:</h3>
+<ul>
+<li><code>echidna_balance_check</code>: This function defines a property that ensures no address has more than 1000 tokens.</li>
+<li>The function must return <code>true</code> if the property holds, and <code>false</code> if the property is violated.</li>
+</ul>
+<hr>
+<h2 id="running-echidna">6. <strong>Running Echidna</strong></h2>
+<p>To run Echidna and start testing the <code>Token</code> contract:</p>
+<ol>
+<li>
+<p><strong>Compile and Run Echidna</strong>:</p>
+<pre class=" language-bash"><code class="prism  language-bash">echidna-test Token.sol --contract Token --test-mode assertion
+</code></pre>
+</li>
+<li>
+<p><strong>Expected Output</strong>:</p>
+<ul>
+<li>Echidna will fuzz the contract, trying random transactions.</li>
+<li>If the balance of any address exceeds 1000, the test fails.</li>
+<li>If the property holds true for all inputs, the test passes.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="advanced-properties--usage">7. <strong>Advanced Properties &amp; Usage</strong></h2>
+<p>Echidna can test complex properties like <strong>invariants</strong>, <strong>assertions</strong>, or <strong>function outputs</strong>.</p>
+<h3 id="example-2-detecting-overflow">Example 2: Detecting Overflow</h3>
+<pre class=" language-solidity"><code class="prism  language-solidity">// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract OverflowTest {
+    uint256 public counter = 0;
+
+    function increment(uint256 value) public {
+        counter += value;
+    }
+
+    // Property: Counter should never overflow.
+    function echidna_no_overflow() public view returns (bool) {
+        return counter &gt;= 0;
+    }
+}
+</code></pre>
+<h3 id="running-the-test">Running the Test:</h3>
+<pre class=" language-bash"><code class="prism  language-bash">echidna-test OverflowTest.sol --contract OverflowTest
+</code></pre>
+<ul>
+<li>This tests if <code>counter</code> overflows when calling <code>increment</code> with large values. If it overflows, Echidna will catch it and fail the test.</li>
+</ul>
+<hr>
+<h2 id="stateful-fuzzing">8. <strong>Stateful Fuzzing</strong></h2>
+<p>Echidna can test <strong>state transitions</strong> by executing sequences of function calls.</p>
+<h3 id="example-3-contract-with-stateful-property">Example 3: Contract with Stateful Property</h3>
+<pre class=" language-solidity"><code class="prism  language-solidity">// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract StatefulContract {
+    enum State { Init, Active, Closed }
+    State public state;
+
+    constructor() {
+        state = State.Init;
+    }
+
+    function activate() public {
+        require(state == State.Init, "Contract must be in Init state");
+        state = State.Active;
+    }
+
+    function close() public {
+        require(state == State.Active, "Contract must be active");
+        state = State.Closed;
+    }
+
+    // Echidna property: Contract should never go back to Init state after being activated.
+    function echidna_no_reinit() public view returns (bool) {
+        return state != State.Init;
+    }
+}
+</code></pre>
+<h3 id="testing-state-transitions">Testing State Transitions:</h3>
+<pre class=" language-bash"><code class="prism  language-bash">echidna-test StatefulContract.sol --contract StatefulContract
+</code></pre>
+<p>Echidna will try different sequences of function calls and check whether the contract violates the state property.</p>
+<hr>
+<h2 id="debugging-with-echidna">9. <strong>Debugging with Echidna</strong></h2>
+<p>If Echidna finds a bug, it will print a <strong>counterexample</strong> that shows which inputs caused the failure.</p>
+<h3 id="debugging-example">Debugging Example:</h3>
+<pre class=" language-bash"><code class="prism  language-bash">echidna-test Token.sol --contract Token --test-mode assertion
+</code></pre>
+<ul>
+<li>Output:<pre><code>Failed! Counterexample found:
+  balance[0x0000...1] = 1500
+</code></pre>
+</li>
+</ul>
+<p>This shows that an address exceeded 1000 tokens, violating the <code>echidna_balance_check</code> property.</p>
+<hr>
+<h2 id="differential-testing">10. <strong>Differential Testing</strong></h2>
+<p>Echidna can be used to compare two versions of a contract.</p>
+<h3 id="example-testing-two-implementations">Example: Testing Two Implementations</h3>
+<pre class=" language-solidity"><code class="prism  language-solidity">// Old version
+contract OldToken {
+    // Contract code
+}
+
+// New version
+contract NewToken {
+    // Updated contract code
+}
+
+// Differential testing using Echidna
+function echidna_compare_tokens() public returns (bool) {
+    // Compare outputs from both contract versions
+}
+</code></pre>
+<p>You can fuzz both versions and ensure they behave equivalently under the same conditions.</p>
+<hr>
+<h2 id="best-practices-for-fuzzing">11. <strong>Best Practices for Fuzzing</strong></h2>
+<ul>
+<li><strong>Define clear properties</strong>: Write specific properties that your contract should satisfy.</li>
+<li><strong>Test edge cases</strong>: Use properties to focus on edge cases (e.g., extreme values, zero balances).</li>
+<li><strong>Combine fuzzing with other tests</strong>: Use unit tests alongside Echidna for full coverage.</li>
+<li><strong>Monitor for gas limits</strong>: Ensure that fuzz tests do not hit gas limits by accident.</li>
+<li><strong>Run fuzzing continuously</strong>: Set up fuzzing to run automatically in CI environments for ongoing testing.</li>
+</ul>
+<hr>
+<h2 id="conclusion">12. <strong>Conclusion</strong></h2>
+<ul>
+<li>Echidna is a powerful tool for ensuring the correctness and security of Solidity smart contracts.</li>
+<li>It enables automated, property-based fuzzing that can detect bugs and vulnerabilities that might be missed in regular unit testing.</li>
+<li>By incorporating Echidna into the development lifecycle, you can improve the reliability of your smart contracts and avoid costly bugs after deployment.</li>
+</ul>
+<hr>
+<h2 id="resources">13. <strong>Resources</strong></h2>
+<ul>
+<li><strong>Echidna Documentation</strong>: <a href="https://github.com/crytic/echidna">https://github.com/crytic/echidna</a></li>
+<li><strong>Solidity Documentation</strong>: <a href="https://docs.soliditylang.org">https://docs.soliditylang.org</a></li>
+<li><strong>Trail of Bits Blog</strong>: <a href="https://blog.trailofbits.com">https://blog.trailofbits.com</a></li>
+</ul>
+<hr>
+</div>
+</body>
+
+</html>
