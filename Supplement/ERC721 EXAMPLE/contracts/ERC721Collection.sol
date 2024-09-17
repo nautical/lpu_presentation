@@ -152,6 +152,18 @@ contract ERC721Collection is ERC721, Ownable {
         override
         returns (string memory)
     {
+        // TASK : 
+        // Update this function 
+        // if the year is 2024 return a particular URL
+        // if year is > 2024 return 
+        //  abi.encodePacked(
+        //     currentBaseURI,
+        //     _tokenId.toString(),
+        //     uriSuffix
+        // )
+
+        // getter and setter functions for the custom URL
+
         require(
             _exists(_tokenId),
             "ERC721Metadata: URI query for nonexistent token"
