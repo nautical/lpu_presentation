@@ -26,69 +26,94 @@ contract VotingContract {
     event ElectionFinalized(string[] candidateNames, uint256[] voteCounts);
 
     modifier onlyAdmin() {
-        // TODO: Implement this modifier to restrict function calls to the admin
+        require(msg.sender == admin, "Only admin can call this function.");
         _;
     }
 
     modifier duringElection() {
-        // TODO: Implement this modifier to allow voting only during the election period
+        require(block.timestamp >= startTime && block.timestamp <= endTime, "Voting is not open.");
         _;
     }
 
     modifier afterElection() {
-        // TODO: Implement this modifier to restrict certain actions to after the election ends
+        require(block.timestamp > endTime, "Election has not ended yet.");
         _;
     }
 
     constructor() {
-        // TODO: Set the admin to the address deploying the contract
+        admin = msg.sender;
     }
 
     // Admin starts the election
     function startElection(string[] memory candidateNames, uint256 _durationInMinutes) external onlyAdmin {
-        // TODO: Implement logic for starting the election
-        // - Initialize candidates array
-        // - Set the start and end time for the election
-        // - Emit ElectionStarted event
+        require(candidates.length == 0, "Election already started.");
+        require(_durationInMinutes > 0, "Duration should be greater than 0.");
+
+        startTime = block.timestamp;
+        endTime = block.timestamp + (_durationInMinutes * 1 minutes);
+        electionFinalized = false;
+
+        // Adding candidates
+        for (uint256 i = 0; i < candidateNames.length; i++) {
+            candidates.push(Candidate({
+                name: candidateNames[i],
+                voteCount: 0
+            }));
+        }
+
+        emit ElectionStarted(startTime, endTime);
     }
 
     // Voter registration
     function registerVoter() external {
-        // TODO: Implement logic to allow users to register as voters
-        // - Check that the voter is not already registered
-        // - Mark the voter as registered
-        // - Emit VoterRegistered event
+        require(!voters[msg.sender].isRegistered, "Voter is already registered.");
+        voters[msg.sender] = Voter({
+            isRegistered: true,
+            hasVoted: false
+        });
+
+        emit VoterRegistered(msg.sender);
     }
 
     // Voter casts vote by selecting a candidate index
     function castVote(uint256 candidateIndex) external duringElection {
-        // TODO: Implement logic to allow voters to cast their vote
-        // - Check that the voter is registered and has not already voted
-        // - Validate the candidate index
-        // - Increase the vote count of the selected candidate
-        // - Mark the voter as having voted
-        // - Emit VoteCast event
+        // TODO 
     }
 
     // Admin finalizes the election and reveals the results
     function finalizeElection() external onlyAdmin afterElection {
-        // TODO: Implement logic for finalizing the election
-        // - Ensure the election has not already been finalized
-        // - Emit ElectionFinalized event with candidate names and their vote counts
+        require(!electionFinalized, "Election has already been finalized.");
+        
+        electionFinalized = true;
+
+        // Emit election results
+        string[] memory candidateNames = new string[](candidates.length);
+        uint256[] memory voteCounts = new uint256[](candidates.length);
+
+        for (uint256 i = 0; i < candidates.length; i++) {
+            candidateNames[i] = candidates[i].name;
+            voteCounts[i] = candidates[i].voteCount;
+        }
+
+        emit ElectionFinalized(candidateNames, voteCounts);
     }
 
     // Returns the remaining time until voting ends
     function getTimeLeft() external view returns (uint256) {
-        // TODO: Implement logic to return the time left for voting
+        if (block.timestamp > endTime) {
+            return 0;
+        }
+        return endTime - block.timestamp;
     }
 
     // Get candidate count
     function getCandidateCount() external view returns (uint256) {
-        // TODO: Implement logic to return the number of candidates
+        return candidates.length;
     }
 
     // Get candidate details
     function getCandidate(uint256 index) external view returns (string memory, uint256) {
-        // TODO: Implement logic to return the candidate's name and vote count
+        require(index < candidates.length, "Invalid candidate index.");
+        return (candidates[index].name, candidates[index].voteCount);
     }
 }
