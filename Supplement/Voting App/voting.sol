@@ -77,6 +77,7 @@ contract VotingContract {
 
     // Voter casts vote by selecting a candidate index
     function castVote(uint256 candidateIndex) external duringElection {
+<<<<<<< HEAD
         require(voters[msg.sender].isRegistered, "Voter is not registered.");
         require(!voters[msg.sender].hasVoted, "Voter has already voted.");
         require(candidateIndex < candidates.length, "Invalid candidate index.");
@@ -85,6 +86,9 @@ contract VotingContract {
         candidates[candidateIndex].voteCount++;
 
         emit VoteCast(msg.sender, candidateIndex);
+=======
+        // TODO 
+>>>>>>> e51003c3ac55f5149a6cbd86b745d510284ee6e2
     }
 
     // Admin finalizes the election and reveals the results
