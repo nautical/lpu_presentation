@@ -2,13 +2,11 @@
 
 pragma solidity ^0.8.0;
 
-contract MyOtherContract { 
+contract MyOtherContract {  // address
     uint256 public age = 29;
-    
     function getAge() public view returns (uint256) {
         return age;
     }
-
 }
 
 contract CONTRACTB {
