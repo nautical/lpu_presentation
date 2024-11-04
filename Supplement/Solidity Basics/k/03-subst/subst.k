@@ -50,10 +50,16 @@ module SUBST-SYNTAX
 
 endmodule  // End of syntax module definition
 
+// syntax Exp ::= IExp | BExp
+// I => Int + IDs
 // Substitution and evaluation module definition
 module SUBST
    // Import necessary modules:
-   // - INT for integer operations, BOOL for Boolean operations, MAP for the map store functionality, and SUBST-SYNTAX for the syntax defined above.
+   // - INT for integer operations, 
+   // BOOL for Boolean operations, 
+   // MAP for the map store functionality, 
+   // and SUBST-SYNTAX for the syntax defined above.
+
    imports INT
    imports BOOL
    imports MAP
@@ -64,7 +70,8 @@ module SUBST
       // The <k> cell contains the program (expression) to be evaluated.
       <k> $PGM:Exp </k>
 
-      // The <store> cell contains the variable store (as a map), associating variable identifiers (Id) with their integer values.
+      // The <store> cell contains the variable store (as a map), 
+      // associating variable identifiers (Id) with their integer values.
       <store> 
          #token("a", "Id") |-> 16  // Variable a is mapped to the value 16
          #token("b", "Id") |-> 8   // Variable b is mapped to the value 8
